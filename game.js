@@ -1,27 +1,29 @@
 'use strict';
 
+
 // Vector class
 
 class Vector {
   constructor (x = 0, y = 0) {
     this.x = x;
     this.y = y;
-    this.plus = function(vector) {
-      if (!(vector instanceof Vector)) {
-        throw ("Можно прибавлять к вектору только вектор типа Vector");
-      }
-      try {
-        return new Vector (this.x + vector.x, this.y + vector.y);
-      }
-      catch(err) {
-        console.log(err)
-      }
+  }
+  plus(vector) {
+    if (!(vector instanceof Vector)) {
+      throw ("Можно прибавлять к вектору только вектор типа Vector");
     }
-    this.times = function(multiplier = 1) {
-      return new Vector (this.x * multiplier, this.y * multiplier);
+    try {
+      return new Vector (this.x + vector.x, this.y + vector.y);
+    }
+    catch(err) {
+      console.log(err);
     }
   }
+  times(multiplier = 1) {
+    return new Vector (this.x * multiplier, this.y * multiplier);
+  }
 }
+
 
 // Actor class
 
@@ -32,7 +34,7 @@ class Actor {
     if (!(pos instanceof Vector) ||
         !(size instanceof Vector) ||
         !(speed instanceof Vector)) {
-      throw ("Можно использовать только вектор типа Vector");
+      throw ("Для создания Actor можно использовать только объект типа Vector");
     }
     try {
       this.pos = pos;
@@ -42,73 +44,163 @@ class Actor {
     catch(err) {
       console.log(err);
     }
+  }
 
-    Object.defineProperties(this, {
-      "left": {
-        value: this.pos.x,
-        writable: false
-      },
-      "top": {
-        value: this.pos.y,
-        writable: false
-      },
-      "right": {
-        value: this.pos.x + this.size.x,
-        writable: false
-      },
-      "bottom": {
-        value: this.pos.x + this.size.y,
-        writable: false
-      },
-    })
+  get type() {
+    return 'actor';
+  }
 
-    this.type = "actor";
-    this.act = function () {};
-    this.isIntersect = function(object = false) {
-      if (!(object instanceof Actor) || (object === false)) {
-        throw ("Для расчета пересечения можно использовать только класс Actor");
+  get left() {
+    return this.pos.x;
+  }
+
+  get top() {
+    return this.pos.y;
+  }
+
+  get right() {
+    return this.pos.x + this.size.x;
+  }
+
+  get bottom() {
+    return this.pos.y + this.size.y;
+  }
+
+  act() {};
+
+  isIntersect(actor) {
+    if (!(actor instanceof Actor) || actor === undefined) {
+      throw ("Для расчета пересечения можно использовать только класс Actor");
+    }
+    try {
+      if (this === object) {
+        return false;
+      } else {
+        return this.top === actor.top && this.right === actor.right &&
+               this.bottom === actor.bottom && this.left === actor.left;
       }
-      try {
-        if (this === object) {
-          return false;
-        } else {
-          return this.top === object.top && this.right === object.right &&
-                 this.bottom === object.bottom && this.left === object.left;
-        }
-      }
-      catch(err) {
-        console.log(err);
-      }
+    }
+    catch(err) {
+      console.log(err);
     }
   }
 }
 
 
-const items = new Map();
-const player = new Actor();
-items.set('Игрок', player);
-items.set('Первая монета', new Actor(new Vector(10, 10)));
-items.set('Вторая монета', new Actor(new Vector(15, 5)));
+// Level class
 
-function position(item) {
-  return ['left', 'top', 'right', 'bottom']
-    .map(side => `${side}: ${item[side]}`)
-    .join(', ');
-}
+class Level {
+  constructor(grid = [], actors = []) {
+    this.grid = grid.slice();
+    this.actors = actors.slice();
+    this.height = this.grid.length;
+    this.width = Math.max(0, ...this.grid.map(cell => cell.length));
+    this.player = actors.find(elem => elem.type === 'player')
+    this.status = null;
+    this.finishDelay = 1;
+  }
 
-function movePlayer(x, y) {
-  player.pos = player.pos.plus(new Vector(x, y));
-}
+  isFinished() {
+    return this.status !== null && this.finishDelay < 0;
+  }
+  actorAt(actor) {
+    if (actor instanceof Actor) {
+      console.log("Строка 106, передан " + actor.type);
+      console.log(actor);
+    }
+    if (!(actor instanceof Actor) || actor === undefined) {
+      throw ("Для расчета пересечения можно использовать только класс Actor");
+    }
+    try {
+      return this.actors.find(elem => actor.isIntersect(elem));
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  obstacleAt(actorPosition, actorSize) {
+    if (!(actorPosition instanceof Vector) || !(actorSize instanceof Vector)) {
+      throw ("Для расчета препятствий можно использовать только класс Vector");
+    }
+    try {
+      const topBorder = actorPosition.y;
+      const rightBorder = actorPosition.x + actorSize.x;
+      const bottomBorder = actorPosition.y + actorSize.y;
+      const leftBorder = actorPosition.x;
 
-function status(item, title) {
-  console.log(`${title}: ${position(item)}`);
-  if (player.isIntersect(item)) {
-    console.log(`Игрок подобрал ${title}`);
+      if (leftBorder < 0 || topBorder < 0 || rightBorder > this.width) {
+        return 'wall'
+      }
+      if (bottomBorder > this.height) {
+        return 'lava';
+      }
+      for (let y = Math.floor(topBorder); y < Math.ceil(bottomBorder); y++) {
+        for (let x = Math.floor(leftBorder); x < Math.ceil(rightBorder); x++) {
+          const fieldType = this.grid[y][x];
+          if (fieldType) {
+            return fieldType;
+          }
+        }
+      }
+    } catch(err) {
+      console.log(err);
+    }
+  }
+  removeActor(actor) {
+    const searched = this.actors.findIndex(elem => elem === actor);
+    if (searched !== -1) {
+      this.actors.splice(searched, 1);
+    }
+  }
+  noMoreActors(actorType) {
+    return !(this.actors.find(elem => elem.type = actorType));
+  }
+  playerTouched(obstacleType, actor = 0) {
+    if (this.status === null) {
+      if (obstacleType === "lava" || obstacleType === "fireball") {
+        this.status = "lost";
+      } else if (obstacleType === "coin" && actor.type === "coin"){
+        this.removeActor(actor);
+        if (this.noMoreActors(actor)) {
+          this.status = "won";
+        }
+      }
+    }
   }
 }
 
-items.forEach(status);
-movePlayer(10, 10);
-items.forEach(status);
-movePlayer(5, -5);
-items.forEach(status);
+const grid = [
+  [undefined, undefined],
+  ['wall', 'wall']
+];
+
+function MyCoin(title) {
+  this.type = 'coin';
+  this.title = title;
+}
+MyCoin.prototype = Object.create(Actor);
+MyCoin.constructor = MyCoin;
+
+const goldCoin = new MyCoin('Золото');
+const bronzeCoin = new MyCoin('Бронза');
+const player = new Actor();
+const fireball = new Actor();
+
+const level = new Level(grid, [ goldCoin, bronzeCoin, player, fireball ]);
+
+level.playerTouched('coin', goldCoin);
+level.playerTouched('coin', bronzeCoin);
+
+if (level.noMoreActors('coin')) {
+  console.log('Все монеты собраны');
+  console.log(`Статус игры: ${level.status}`);
+}
+
+const obstacle = level.obstacleAt(new Vector(1, 1), player.size);
+if (obstacle) {
+  console.log(`На пути препятствие: ${obstacle}`);
+}
+
+const otherActor = level.actorAt(player);
+if (otherActor === fireball) {
+  console.log('Пользователь столкнулся с шаровой молнией');
+}
