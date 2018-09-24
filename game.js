@@ -73,7 +73,7 @@ class Actor {
       throw ("Для расчета пересечения можно использовать только класс Actor");
     }
     try {
-      if (this === object) {
+      if (this === actor) {
         return false;
       } else {
         return this.top === actor.top && this.right === actor.right &&
@@ -104,10 +104,6 @@ class Level {
     return this.status !== null && this.finishDelay < 0;
   }
   actorAt(actor) {
-    if (actor instanceof Actor) {
-      console.log("Строка 106, передан " + actor.type);
-      console.log(actor);
-    }
     if (!(actor instanceof Actor) || actor === undefined) {
       throw ("Для расчета пересечения можно использовать только класс Actor");
     }
@@ -152,15 +148,15 @@ class Level {
     }
   }
   noMoreActors(actorType) {
-    return !(this.actors.find(elem => elem.type = actorType));
+    return !(this.actors.find(elem => elem.type === actorType));
   }
-  playerTouched(obstacleType, actor = 0) {
+  playerTouched(obstacleType, touchedItem = 0) {
     if (this.status === null) {
       if (obstacleType === "lava" || obstacleType === "fireball") {
         this.status = "lost";
-      } else if (obstacleType === "coin" && actor.type === "coin"){
-        this.removeActor(actor);
-        if (this.noMoreActors(actor)) {
+      } else if (obstacleType === "coin" && touchedItem.type === "coin"){
+        this.removeActor(touchedItem);
+        if (this.noMoreActors("coin")) {
           this.status = "won";
         }
       }
