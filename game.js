@@ -10,7 +10,7 @@ class Vector {
   }
   plus(vector) {
     if (!(vector instanceof Vector)) {
-      throw ("Можно прибавлять к вектору только вектор типа Vector");
+      throw new Error("Можно прибавлять к вектору только вектор типа Vector");
     }
     try {
       return new Vector (this.x + vector.x, this.y + vector.y);
@@ -34,7 +34,7 @@ class Actor {
     if (!(pos instanceof Vector) ||
         !(size instanceof Vector) ||
         !(speed instanceof Vector)) {
-      throw ("Для создания Actor можно использовать только объект типа Vector");
+      throw new Error("Для создания Actor можно использовать только объект типа Vector");
     }
     try {
       this.pos = pos;
@@ -70,14 +70,14 @@ class Actor {
 
   isIntersect(actor) {
     if (!(actor instanceof Actor) || actor === undefined) {
-      throw ("Для расчета пересечения можно использовать только класс Actor");
+      throw new Error("Для расчета пересечения можно использовать только класс Actor");
     }
     try {
       if (this === actor) {
         return false;
       } else {
-        return this.top === actor.top && this.right === actor.right &&
-               this.bottom === actor.bottom && this.left === actor.left;
+        return this.right > actor.left && this.left < actor.right &&
+               this.bottom > actor.top && this.top < actor.bottom;
       }
     }
     catch(err) {
@@ -105,7 +105,7 @@ class Level {
   }
   actorAt(actor) {
     if (!(actor instanceof Actor) || actor === undefined) {
-      throw ("Для расчета пересечения можно использовать только класс Actor");
+      throw new Error("Для расчета пересечения можно использовать только класс Actor");
     }
     try {
       return this.actors.find(elem => actor.isIntersect(elem));
@@ -115,7 +115,7 @@ class Level {
   }
   obstacleAt(actorPosition, actorSize) {
     if (!(actorPosition instanceof Vector) || !(actorSize instanceof Vector)) {
-      throw ("Для расчета препятствий можно использовать только класс Vector");
+      throw new Error("Для расчета препятствий можно использовать только класс Vector");
     }
     try {
       const topBorder = actorPosition.y;
