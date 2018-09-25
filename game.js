@@ -122,7 +122,6 @@ class Level {
       const rightBorder = actorPosition.x + actorSize.x;
       const bottomBorder = actorPosition.y + actorSize.y;
       const leftBorder = actorPosition.x;
-
       if (leftBorder < 0 || topBorder < 0 || rightBorder > this.width) {
         return 'wall'
       }
@@ -164,39 +163,44 @@ class Level {
   }
 }
 
-const grid = [
-  [undefined, undefined],
-  ['wall', 'wall']
-];
 
-function MyCoin(title) {
-  this.type = 'coin';
-  this.title = title;
-}
-MyCoin.prototype = Object.create(Actor);
-MyCoin.constructor = MyCoin;
+// LevelParser class
 
-const goldCoin = new MyCoin('Золото');
-const bronzeCoin = new MyCoin('Бронза');
-const player = new Actor();
-const fireball = new Actor();
-
-const level = new Level(grid, [ goldCoin, bronzeCoin, player, fireball ]);
-
-level.playerTouched('coin', goldCoin);
-level.playerTouched('coin', bronzeCoin);
-
-if (level.noMoreActors('coin')) {
-  console.log('Все монеты собраны');
-  console.log(`Статус игры: ${level.status}`);
-}
-
-const obstacle = level.obstacleAt(new Vector(1, 1), player.size);
-if (obstacle) {
-  console.log(`На пути препятствие: ${obstacle}`);
-}
-
-const otherActor = level.actorAt(player);
-if (otherActor === fireball) {
-  console.log('Пользователь столкнулся с шаровой молнией');
+class LevelParser {
+  constructor(levelObjects) {
+    this.levelObjects = Object.assign({}, levelObjects);
+  }
+  actorFromSymbol(symbol) {
+    return this.levelObjects[symbol];
+  }
+  obstacleFromSymbol(symbol) {
+    if (symbol === "x") {
+      return "wall";
+    } else if (symbol === "!") {
+      return "lava";
+    } else {
+      return undefined;
+    }
+  }
+  createGrid(gridArr) {
+    return gridArr.map(row => row.split('').map(cell => this.obstacleFromSymbol(cell)));
+  }
+  createActors(actorArr) {
+  const actors = [];
+  actorArr.forEach((row, rowIndex) => {
+    row.split('').forEach((cell, cellIndex) => {
+      const actorClass = this.actorFromSymbol(cell);
+      if (typeof actorClass === 'function') {
+        const actor = new actorClass(new Vector(cellIndex, rowIndex));
+        if (actor instanceof Actor) {
+          actors.push(actor);
+        }
+      }
+    });
+  });
+  return actors;
+  }
+  parse(plan) {
+    return new Level(this.createGrid(plan), this.createActors(plan));
+  }
 }
