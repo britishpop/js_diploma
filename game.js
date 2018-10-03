@@ -12,6 +12,7 @@ class Vector {
     if (!(vector instanceof Vector)) {
       throw new Error("Можно прибавлять к вектору только вектор типа Vector");
     }
+    // а зачем здесь try?
     try {
       return new Vector (this.x + vector.x, this.y + vector.y);
     }
@@ -36,6 +37,7 @@ class Actor {
         !(speed instanceof Vector)) {
       throw new Error("Для создания Actor можно использовать только объект типа Vector");
     }
+    // а зачем здесь try?
     try {
       this.pos = pos;
       this.size = size;
@@ -62,12 +64,15 @@ class Actor {
   }
   act() {};
   isIntersect(actor) {
+    // вторая часть проверки лишняя
     if (!(actor instanceof Actor) || actor === undefined) {
       throw new Error("Для расчета пересечения можно использовать только класс Actor");
     }
+    // try?
     try {
       if (this === actor) {
         return false;
+      // если if заканчивается на return, то else не нужен
       } else {
         return this.right > actor.left && this.left < actor.right &&
                this.bottom > actor.top && this.top < actor.bottom;
@@ -84,6 +89,8 @@ class Actor {
 
 class Level {
   constructor(grid = [], actors = []) {
+    // напишите, пожалуйста, в личном кабиненте нетологии
+    // зачем вы здесь использовали slice
     this.grid = grid.slice();
     this.actors = actors.slice();
     this.height = this.grid.length;
@@ -100,6 +107,7 @@ class Level {
     if (!(actor instanceof Actor) || actor === undefined) {
       throw new Error("Для расчета пересечения можно использовать только класс Actor");
     }
+    // ?
     try {
       return this.actors.find(elem => actor.isIntersect(elem));
     } catch (err) {
@@ -110,6 +118,7 @@ class Level {
     if (!(actorPosition instanceof Vector) || !(actorSize instanceof Vector)) {
       throw new Error("Для расчета препятствий можно использовать только класс Vector");
     }
+    // ?
     try {
       const topBorder = actorPosition.y;
       const rightBorder = actorPosition.x + actorSize.x;
@@ -121,6 +130,8 @@ class Level {
       if (bottomBorder > this.height) {
         return 'lava';
       }
+      // обкруглённые значения лучше записать в переменные,
+      // чтобы каждый раз не округлять
       for (let y = Math.floor(topBorder); y < Math.ceil(bottomBorder); y++) {
         for (let x = Math.floor(leftBorder); x < Math.ceil(rightBorder); x++) {
           const fieldType = this.grid[y][x];
@@ -134,15 +145,23 @@ class Level {
     }
   }
   removeActor(actor) {
+    // есть более простой метод поиска объекта в массиве
+    // (без функции обратного вызова)
     const searched = this.actors.findIndex(elem => elem === actor);
     if (searched !== -1) {
       this.actors.splice(searched, 1);
     }
   }
   noMoreActors(actorType) {
+    // тут можно использовать метод,
+    // который проверяет наличие объекта удовлетворяющего условию
+    // и возвращает true/false
     return !(this.actors.find(elem => elem.type === actorType));
   }
+  // странное значение по-умолчанию для второго аргумента
   playerTouched(obstacleType, touchedItem = 0) {
+    // тут можно обратить условие, написать в if return
+    // и уменьшить тем самым вложенность кода
     if (this.status === null) {
       if (obstacleType === "lava" || obstacleType === "fireball") {
         this.status = "lost";
@@ -160,7 +179,9 @@ class Level {
 // LevelParser class
 
 class LevelParser {
+  // можно добавить значение по-умолчанию
   constructor(levelObjects) {
+    // через спред запись короче
     this.levelObjects = Object.assign({}, levelObjects);
   }
   actorFromSymbol(symbol) {
@@ -169,8 +190,11 @@ class LevelParser {
   obstacleFromSymbol(symbol) {
     if (symbol === "x") {
       return "wall";
+    // else тут не нужен
     } else if (symbol === "!") {
       return "lava";
+    // лишняя ветка кода, фукнция и так вернёт undefined,
+    // если не указано иное
     } else {
       return undefined;
     }
@@ -179,7 +203,9 @@ class LevelParser {
     return gridArr.map(row => row.split('').map(cell => this.obstacleFromSymbol(cell)));
   }
   createActors(actorArr) {
+    // форматирование
   const actors = [];
+    // высший пилотаж — это использовать тут reduce
   actorArr.forEach((row, rowIndex) => {
     row.split('').forEach((cell, cellIndex) => {
       const actorClass = this.actorFromSymbol(cell);
@@ -263,6 +289,7 @@ class Coin extends Actor{
     super(pos.plus(new Vector(0.2,0.1)), new Vector(0.6,0.6), new Vector(0,0));
     this.springSpeed = 8;
     this.springDist = 0.07;
+    // Math.random принимает 1 аргумент
     this.spring = Math.random(Math.PI * 2, 0);
     this.startPosition = this.pos;
   }
@@ -327,7 +354,7 @@ const actorDict = {
     'o': Coin,
     '=': HorizontalFireball,
     '|': VerticalFireball
-}
+} // точка с запятой :)
 const parser = new LevelParser(actorDict);
 runGame(schemas, parser, DOMDisplay)
   .then(() => console.log('Вы выиграли приз!'));
