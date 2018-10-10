@@ -110,20 +110,10 @@ class Level {
     }
   }
   removeActor(actor) {
-    // есть более простой метод поиска объекта в массиве //
-    // (без функции обратного вызова)
     this.actors = this.actors.filter((item) => item !== actor);
-    // const searched = this.actors.findIndex(elem => elem === actor);
-    // if (searched !== -1) {
-    //   this.actors.splice(searched, 1);
-    // }
   }
   noMoreActors(actorType) {
-    // тут можно использовать метод,
-    // который проверяет наличие объекта удовлетворяющего условию
-    // и возвращает true/false
-    return this.actors.every(elem => elem.type !== actorType);
-    // return !(this.actors.find(elem => elem.type === actorType));
+    return this.actors.length === 0 || this.actors.every(elem => elem.type !== actorType);
   }
   playerTouched(obstacleType, touchedItem) {
     if (this.status !== null) {
@@ -162,7 +152,6 @@ class LevelParser {
   }
   createActors(actorArr) {
     const actors = [];
-      // высший пилотаж — это использовать тут reduce
     actorArr.forEach((row, rowIndex) => {
       row.split('').forEach((cell, cellIndex) => {
         const actorClass = this.actorFromSymbol(cell);
@@ -246,7 +235,7 @@ class Coin extends Actor{
     super(pos.plus(new Vector(0.2,0.1)), new Vector(0.6,0.6), new Vector(0,0));
     this.springSpeed = 8;
     this.springDist = 0.07;
-    this.spring = Math.random(Math.PI * 2);
+    this.spring = Math.random() * 2 * Math.PI;
     this.startPosition = this.pos;
   }
   get type() {
