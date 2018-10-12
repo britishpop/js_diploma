@@ -113,7 +113,8 @@ class Level {
     this.actors = this.actors.filter((item) => item !== actor);
   }
   noMoreActors(actorType) {
-    return this.actors.length === 0 || this.actors.every(elem => elem.type !== actorType);
+    return !this.actors.some(actor => actor.type === actorType);
+    // return this.actors.length === 0 || this.actors.every(elem => elem.type !== actorType);
   }
   playerTouched(obstacleType, touchedItem) {
     if (this.status !== null) {
@@ -143,7 +144,8 @@ class LevelParser {
   obstacleFromSymbol(symbol) {
     if (symbol === "x") {
       return "wall";
-    } else if (symbol === "!") {
+    }
+    if (symbol === "!") {
       return "lava";
     }
   }
