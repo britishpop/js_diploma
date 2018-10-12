@@ -114,7 +114,6 @@ class Level {
   }
   noMoreActors(actorType) {
     return !this.actors.some(actor => actor.type === actorType);
-    // return this.actors.length === 0 || this.actors.every(elem => elem.type !== actorType);
   }
   playerTouched(obstacleType, touchedItem) {
     if (this.status !== null) {
